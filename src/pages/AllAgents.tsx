@@ -32,7 +32,7 @@ const AllAgents: Component = () => {
     ];
 
     async function handleDelete(id: number): Promise<boolean> {
-        const { error } = await deleteData(id, 'agent', 'agent_id');
+        const { error } = await deleteData('table', id, 'agent');
         if (error) {
             showToast({ message: t('ipaz_alert_fail_deleteData'), type: 'error' });
             return false;

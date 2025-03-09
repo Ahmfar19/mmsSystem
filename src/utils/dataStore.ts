@@ -1,47 +1,5 @@
 import { createResource } from 'solid-js';
 import { getData } from './api';
-import { isCurrentMonthAndYear, isDateInFeature, isDateInPast } from './functions';
-import { MarkTtype } from './types';
-
-export const [
-    marks,
-    { refetch: refetchMarks, mutate: mutateMarks },
-] = createResource(async () => {
-    const data = await getData('mark');
-
-    const lastTenMarks: MarkTtype[] = [];
-    const protectedMarks: MarkTtype[] = [];
-    const unProtectedMarks: MarkTtype[] = [];
-    const protectionEndThisMonth: MarkTtype[] = [];
-    const pendingMarks: MarkTtype[] = [];
-
-    data.forEach((mark: MarkTtype, index: number) => {
-        if (index < 10) {
-            lastTenMarks.push(mark);
-        }
-
-        if (isDateInPast(mark.protection_end)) {
-            unProtectedMarks.push(mark);
-        } else if (isDateInFeature(mark.protection_end)) {
-            protectedMarks.push(mark);
-        } else if (mark.protection_end === '') {
-            pendingMarks.push(mark);
-        }
-
-        if (isCurrentMonthAndYear(mark.protection_end)) {
-            protectionEndThisMonth.push(mark);
-        }
-    });
-    
-    return {
-        lastTenMarks,
-        protectedMarks,
-        unProtectedMarks,
-        protectionEndThisMonth,
-        pendingMarks,
-        marksCount: data.length,
-    };
-});
 
 export const roles: { [key: string]: any } = {
     ar: [{ id: 0, role: 'مستخدم' }, { id: 1, role: 'مدير' }],
@@ -363,10 +321,10 @@ export const [applicationType] = createResource(
 );
 
 export const [customers, { refetch: refetchCustomers, mutate: mutateCustomers }] = createResource(() =>
-    getData('customer')
+    getData('table', 'customer')
 );
 
-export const [agent, { refetch: refetchAgent, mutate: mutateAgent }] = createResource(() => getData('agent'));
+export const [agent, { refetch: refetchAgent, mutate: mutateAgent }] = createResource(() => getData('table', 'agent'));
 
 export function updateResource(
     mutateFunction: Function,

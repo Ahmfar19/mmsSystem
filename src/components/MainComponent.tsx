@@ -7,30 +7,29 @@ import FooterComponent from './FooterComponent';
 import NavComponent from './NavComponent';
 import SettingsComponent from './SettingsComponent';
 import SidebarComponent from './SidebarComponent';
+import SpinnerComponent from './SpinnerComponent';
 
 interface MainLayoutProps {
     children: JSX.Element;
 }
 
 const MainComponent = (props: MainLayoutProps) => {
-    const blackList = ['login', 'invoiveMark', 'blank'];
-    const [showMain, setShowMain] = createSignal(true);
     const { store } = useAppContext();
     const [, { locale }] = useI18n();
 
     const location = useLocation();
     const pathname = createMemo(() => location.pathname);
 
-    if (store.theme === 'dark') {
-        document.querySelector('.js-light')?.remove();
-    } else {
-        document.querySelector('.js-dark')?.remove();
-    }
+    const [showMain, setShowMain] = createSignal(false);
+
+    const blackList = ['login', 'invoiveMark', 'blank'];
 
     createEffect(() => {
         if (blackList.includes(pathname().split('/')[1])) {
             setShowMain(false);
-        } else if (store.staffID) {
+        } else if (store.staff.staff_id) {
+            setShowMain(true);
+        } else {
             setShowMain(true);
         }
     });
@@ -40,28 +39,37 @@ const MainComponent = (props: MainLayoutProps) => {
     });
 
     return (
-        <>
-            <Show when={showMain()}>
-                <SidebarComponent />
-            </Show>
-            <div class='main'>
-                <Show when={showMain()}>
-                    <NavComponent />
-                </Show>
-                <main
-                    class='content'
-                    classList={{ rtl: locale() === 'ar' }}
-                >
-                    <div class='container-fluid p-0'>
+        <Show when={!store.onAuthenticate} fallback={<SpinnerComponent />}>
+            <Show
+                when={store.isInlogged}
+                fallback={
+                    <div class='main'>
                         {props.children}
                     </div>
-                </main>
+                }
+            >
                 <Show when={showMain()}>
-                    <FooterComponent />
-                    <SettingsComponent />
+                    <SidebarComponent />
                 </Show>
-            </div>
-        </>
+                <div class='main'>
+                    <Show when={showMain()}>
+                        <NavComponent />
+                    </Show>
+                    <main
+                        class='content'
+                        classList={{ rtl: locale() === 'ar' }}
+                    >
+                        <div class='container-fluid p-0'>
+                            {props.children}
+                        </div>
+                    </main>
+                    <Show when={showMain()}>
+                        <FooterComponent />
+                        <SettingsComponent />
+                    </Show>
+                </div>
+            </Show>
+        </Show>
     );
 };
 

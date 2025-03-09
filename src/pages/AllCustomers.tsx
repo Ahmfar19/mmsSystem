@@ -43,7 +43,7 @@ const AllCustomers: Component = () => {
     ];
 
     async function handleDelete(id: number): Promise<boolean> {
-        const { error } = await deleteData(id, 'customer', 'customer_id');
+        const { error } = await deleteData('table', id, 'customer');
         if (error) {
             showToast({ message: t('ipaz_alert_fail_deleteData'), type: 'error' });
             return false;

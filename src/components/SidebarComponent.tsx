@@ -1,15 +1,17 @@
+/* eslint-disable solid/style-prop */
 import { useI18n } from '@solid-primitives/i18n';
 import { A, useNavigate } from '@solidjs/router';
 import * as bootstrap from 'bootstrap';
 import { Button } from 'solid-bootstrap';
 import { Component, createEffect, createSignal } from 'solid-js';
-import { setIsInloged } from '../utils/functions';
+import { useAppContext } from '../AppContext';
 import { collapse } from './NavComponent';
 
 const [collapseName, setCollapseName] = createSignal<{ collapse: string; page: string }>();
 
 const SidebarComponent: Component = () => {
     const [t] = useI18n();
+    const { clearAllCookies, setStore } = useAppContext();
     const navigate = useNavigate();
 
     createEffect(() => {
@@ -24,8 +26,8 @@ const SidebarComponent: Component = () => {
     });
 
     function handleLogout() {
-        localStorage.removeItem('inlogged');
-        setIsInloged(false);
+        clearAllCookies();
+        setStore('isInlogged', false);
         navigate(`/login`, { replace: true });
     }
 
@@ -73,7 +75,7 @@ const SidebarComponent: Component = () => {
                                         <div class='d-flex justify-content-center'>
                                             <div class='flex-shrink-0'>
                                                 <img
-                                                    src='/img/logo/logo_mini_nobg.png'
+                                                    src='/img/logo/logo_mini.png'
                                                     class='avatar img-fluid rounded me-1 bg-light'
                                                     alt='Charles Hall'
                                                 />

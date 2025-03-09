@@ -1,13 +1,13 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import { useI18n } from '@solid-primitives/i18n';
-import { appDataDir } from '@tauri-apps/api/path';
-import { convertFileSrc } from '@tauri-apps/api/tauri';
 import feather from 'feather-icons';
 import { Button, Card, Col, Form, Row, Table } from 'solid-bootstrap';
 import { Accessor, Component, createEffect, createSignal, For, onMount, Show, untrack } from 'solid-js';
 import { useAppContext } from '../AppContext';
+import { mutateCardValues, mutateSpecMarks, refetCardValues, refetSpecMarks } from '../pages/Home';
 import { deleteData, updateData } from '../utils/api';
-import { customers, languages, refetchMarks } from '../utils/dataStore';
-import { calculateDateAfter10Years } from '../utils/functions';
+import { customers, languages } from '../utils/dataStore';
+import { calculateDateAfter10Years, isDateInFeature } from '../utils/functions';
 import showToast from '../utils/ToastMessage';
 import ApplicationComponent from './ApplicationsComponent';
 import ConfirmModel from './ConfirmModal';
@@ -23,8 +23,8 @@ const MarkManageComponent: Component<{
     const { store } = useAppContext();
 
     let markFormElement: HTMLFormElement;
+
     const [validated, setValidated] = createSignal(false);
-    const [imagesPath, setImagesPath] = createSignal();
 
     const [markValue, setMarkValue] = createSignal<any>();
     const [customerValue, setCustomerValue] = createSignal<any>('');
@@ -61,27 +61,60 @@ const MarkManageComponent: Component<{
     async function submitMark() {
         setMarkValue({ ...markValue(), ...markUpdate() });
 
-        const { error } = await updateData(markValue().mark_id, markUpdate(), 'mark', 'mark_id');
+        const { error } = await updateData('table', markValue().mark_id, markUpdate(), 'mark');
         if (error) {
             showToast({ message: t('ipaz_alert_fail_editData'), type: 'error' });
         } else {
             updateFoundMarks();
             setValidated(false);
             showToast({ message: t('ipaz_alert_success_editData'), type: 'default' });
-            refetchMarks();
+            refetCardValues();
+            refetSpecMarks();
         }
     }
 
     async function handleDeleteMark() {
-        const { error } = await deleteData(markValue().mark_id, 'mark', 'mark_id');
+        const { error } = await deleteData('mark', markValue().mark_id, 'mark');
 
         if (error) {
             showToast({ message: t('ipaz_alert_fail_deleteData'), type: 'error' });
         } else {
             updateFoundMarks(markValue().mark_id);
 
-            // Update the home page
-            refetchMarks();
+            // Update the card values
+            if (isDateInFeature(markValue().protection_end)) {
+                mutateCardValues((prevValues) => ({
+                    ...prevValues,
+                    mark: +prevValues.mark - 1,
+                    protectedMark: +prevValues.protectedMark - 1,
+                }));
+            } else {
+                mutateCardValues((prevValues) => ({
+                    ...prevValues,
+                    mark: +prevValues.mark - 1,
+                }));
+            }
+
+            mutateSpecMarks((prevValues) => {
+                const merkValues = untrack(() => markValue());
+
+                const updatedLast10MarksArray = prevValues.last10MarksArray
+                    .filter((mark: any) => +mark.mark_id !== +merkValues.mark_id);
+
+                const updatedUnProtectedMark = prevValues.unProtectedMark
+                    .filter((mark: any) => +mark.mark_id !== +merkValues.mark_id);
+
+                const updatedEndThisMonth = prevValues.protectionEndThisMonth
+                    .filter((mark: any) => +mark.mark_id !== +merkValues.mark_id);
+
+                return {
+                    ...prevValues,
+                    last10MarksArray: updatedLast10MarksArray,
+                    unProtectedMark: updatedUnProtectedMark,
+                    protectionEndThisMonth: updatedEndThisMonth,
+                };
+            });
+
             setMarkValue();
             showToast({ message: t('ipaz_alert_success_deleteData'), type: 'success' });
         }
@@ -97,10 +130,6 @@ const MarkManageComponent: Component<{
     }
 
     createEffect(() => {
-        appDataDir().then((path: string) => {
-            setImagesPath(path);
-        });
-
         setMarkValue({
             mark_id: props.mark().mark_id,
             name_ar: props.mark().name_ar,
@@ -119,7 +148,7 @@ const MarkManageComponent: Component<{
     createEffect(() => {
         if (customers()) {
             const customer = customers()?.find((item: { [x: string]: string }) =>
-                +item.customer_id === +props.mark().customer_id
+                item.customer_id === String(props.mark().customer_id)
             );
             setCustomerValue(`${customer.firstname} ${customer.lastname}`);
         }
@@ -205,19 +234,17 @@ const MarkManageComponent: Component<{
                             <tr>
                                 <th>{t('ipaz_mark_logo')}</th>
                                 <td id='spc_logo'>
-                                    <Show when={imagesPath()}>
-                                        <For each={markValue()?.logo}>
-                                            {(img) => (
-                                                <img
-                                                    class='m-2'
-                                                    src={convertFileSrc(`${imagesPath()}images/${img}`)}
-                                                    alt='لا يوجد'
-                                                    width='200'
-                                                    height='150'
-                                                />
-                                            )}
-                                        </For>
-                                    </Show>
+                                    <For each={markValue()?.logo}>
+                                        {(img) => (
+                                            <img
+                                                class='m-2'
+                                                src={`${IMAGE_URL}${markValue().mark_id}/${img}`}
+                                                alt='لا يوجد'
+                                                width='200'
+                                                height='150'
+                                            />
+                                        )}
+                                    </For>
                                 </td>
                             </tr>
                         </tbody>
@@ -309,6 +336,7 @@ const MarkManageComponent: Component<{
                                 onInput={handleMarkUpdateChange}
                                 value={markValue().certificate_number ?? ''}
                                 placeholder={t('ipaz_mark_certificate_number')}
+                                required
                             />
                             <Form.Control.Feedback type='invalid'>
                                 {t('ipaz_validation_required')}
@@ -323,6 +351,7 @@ const MarkManageComponent: Component<{
                                 name='certificate_date'
                                 onInput={handleMarkUpdateChange}
                                 value={markValue().certificate_date ?? ''}
+                                required
                             />
                             <Form.Control.Feedback type='invalid'>
                                 {t('ipaz_validation_required')}

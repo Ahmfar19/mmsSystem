@@ -1,9 +1,8 @@
 {
-    "iapz_company_name": "MMS",
+    "iapz_company_name": "البواب",
     "iapz_company_title": "حماية المكلية",
     "ipaz_sidebar_companyName": "ادارة العلامات التجارية",
-    "ipaz.home.title": "الصفحة الرئيسية",
-    "ipaz_sidebar_home": "عام",
+    "ipaz_sidebar_home": "الصفحة الرئيسية",
     "ipaz_sidebar_pages": "الصفحات",
     "ipaz_sidebar_logout": "تسجيل الخروج",
     "ipaz_sidebar_newMark": "تسجيل علامة",
@@ -112,11 +111,13 @@
     "ipaz_modal_close": "اغلاق",
     "ipaz_modal_ok": "نعم",
     "ipaz_modal_no": "لا",
+    "ipaz_modal_yes": "نعم",
     "ipaz_modal_cancel": "الغاء",
     "ipaz_mark_save": "احفظ العلامة",
     "ipaz_mark_payment_note": "دفعة لقاء تسجيل طلب",
     "ipaz_title_save": "حفظ",
     "ipaz_title_confirm": "تأكيد",
+    "ipaz_title_select": "اختر...",
 
     "ipaz_note_markRegisterd": "تسجيل علامة",
     "ipaz_note_markRegisterdDone": "تم تسجيل العلامة",
@@ -142,6 +143,10 @@
     "ipaz_alert_fail_addNote": "لم تتم إضافة الملاحظة",
     "ipaz_alert_success_addUser": "تم اضافة المستخدم",
     "ipaz_alert_fail_addUser": "فشل اضافة المستخدم",
+    "ipaz_alert_success_deleteUser": "تم حذف المستخدم بنجاح",
+    "ipaz_alert_fail_deleteUser": "فشل حذف المستخدم",
+    "ipaz_alert_success_updateUser": "تم تحديث المستخدم بنجاح",
+    "ipaz_alert_fail_updateUser": "فشل تحديث المستخدم",
 
     "ipaz_payment_add": "اضافة دفعة",
     "ipaz_payment_update": "تعديل دفعة",
@@ -169,12 +174,12 @@
     "ipaz_card_waintingDecision": "العلامات في انتظار قرار",
     "ipaz_mark_createNewApp": "اضافة طلب",
     "ipaz_home_homTitle": "الصفحة العامة",
+
     "ipaz_chart_PieTitle": "نظرة عامة عن العلامات",
     "ipaz_chart_protectedMark": "العلامات المحمية",
     "ipaz_chart_awaitingMark": "العلامات في انتظار",
     "ipaz_chart_unProtectedMark": "العلامات منتهية الحماية",
     "ipaz_chart_protectionEndThisMonth": "الحماية تنتهي هذا الشهر",
-
     "ipaz_validation_required": "هذا الحقل الزامي",
 
     "ipaz_login_title": "مرحبًا بعودتك",
@@ -190,6 +195,12 @@
     "ipaz_login_fail": "البريد الإلكتروني أو كلمة المرور غير صالحة",
     "ipaz_spinner_loading": "قيد التحميل...",
 
+    "ipaz_role_admin": "مدير",
+    "ipaz_role_employee": "موظف",
+    "ipaz_role_user": "مستخدم",
+    "ipaz_role_unkown": "غير معروف",
+
+    "ipaz_settings_manageAccount": "إدارة الحسابات",
     "ipaz_settings_account": "الحساب",
     "ipaz_settings_name": "الاعدادات",
     "ipaz_settings_accountSettings": "اعدادات الحساب",
@@ -202,5 +213,15 @@
     "ipaz_settings_users": "المستخدمين",
     "ipaz_settings_allUsers": "كل المستخدمين",
     "ipaz_settings_newUser": "مستخدم جديد",
-    "ipaz_settings_role": "الصلاحية"
+    "ipaz_settings_role": "الصلاحية",
+    "ipaz_settings_upload": "تحميل",
+    "ipaz_settings_imageInfo": "للحصول على أفضل النتائج، استخدم صورة بحجم لا يقل عن 128 بكسل × 128 بكسل بتنسيق .jpg",
+    "ipaz_settings_changePassword": "تغيير كلمة المرور",
+    "ipaz_settings_currentPassword": "كلمة المرور الحالية",
+    "ipaz_settings_newPassword": "كلمة المرور الجديدة",
+    "ipaz_settings_verifyPassword": "تأكيد كلمة المرور",
+    "ipaz_password_updating_successfully": "تم تحديث كلمة المرور.",
+
+    "ipaz_modal_confirmTitle": "تأكيد",
+    "ipaz_modal_confirm": "هل أنت متأكد؟"
 }

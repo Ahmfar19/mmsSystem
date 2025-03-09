@@ -1,13 +1,9 @@
-import bcrypt from 'bcryptjs';
-import { createSignal } from 'solid-js';
 import { postData } from './api';
 import showToast from './ToastMessage';
 import { NotesData, PaymentsData } from './types';
 
-export const [isInlogged, setIsInloged] = createSignal<boolean>(!!localStorage.getItem('inlogged'));
-
 export async function createNote(
-    mark_id: number,
+    mark_id: string,
     note_title: string,
     note_date: string,
     note_text?: string,
@@ -21,7 +17,7 @@ export async function createNote(
         note_text,
     } as NotesData;
 
-    const { error, id } = await postData(notesData, 'note');
+    const { error, id } = await postData(notesData, 'table', 'note');
 
     if (error) {
         showToast({
@@ -56,7 +52,7 @@ export async function createPayment(
         payment_note,
     } as PaymentsData;
 
-    const { error, id } = await postData(paymentsData, 'payment');
+    const { error, id } = await postData(paymentsData, 'table', 'payment');
 
     if (error) {
         showToast({
@@ -155,15 +151,16 @@ export function calculatePercentage(partial: number, total: number) {
     return percentage ? percentage.toFixed(2) : 0;
 }
 
-// Function to hash a password
-export async function hashPassword(password: string): Promise<string> {
-    const saltRounds = 10; // Number of salt rounds (the higher, the more secure but slower)
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
-    return hashedPassword;
-}
+export const getRoles = () => {
+    const roleValues: any = {
+        1: 'ipaz_role_admin',
+        2: 'ipaz_role_user',
+        // 3: 'ipaz_role_employee',
+    };
+    return roleValues;
+};
 
-// Function to compare a password with its hash
-export async function comparePassword(password: string, hashedPassword: string): Promise<boolean> {
-    const isMatch = await bcrypt.compare(password, hashedPassword);
-    return isMatch;
-}
+export const getRole = (role: number) => {
+    const roles = getRoles();
+    return roles[role] || 'ipaz_role_unkown';
+};

@@ -7,7 +7,7 @@ import { Component, createEffect, createSignal, For, onCleanup, onMount, Show } 
 import { setCollapseName } from '../components/SidebarComponent';
 import SpinnerComponent from '../components/SpinnerComponent';
 import TableComponent from '../components/TableComponent';
-import { getData, getJoinData } from '../utils/api';
+import { getCustomData } from '../utils/api';
 import { agent, category, customers } from '../utils/dataStore';
 
 const [markSearch, setMarkSearch] = createSignal([]);
@@ -132,22 +132,22 @@ const SearchMark: Component = () => {
         setLoading(true);
         if (name === 'allMarks') {
             if (target.checked) {
-                result = await getData('mark');
+                result = await getCustomData('custom', 'all', '1');
+                setSearchValue(signalValues => ({
+                    ...signalValues,
+                    [name]: value,
+                }));
             } else {
                 setMarkSearch([]);
                 setLoading(false);
                 return;
             }
-        } else if (name === 'application_date') {
-            result = await getJoinData(
-                'mark',
-                'application',
-                'mark.mark_id',
-                'application.mark_id',
-                `strftime('%Y', application.application_date) = "${String(value)}"`,
-            );
         } else {
-            result = await getData('mark', `${name}=${value}`);
+            setSearchValue(signalValues => ({
+                ...signalValues,
+                [name]: value,
+            }));
+            result = await getCustomData('custom', name, value);
         }
         setMarkSearch(result);
         setLoading(false);

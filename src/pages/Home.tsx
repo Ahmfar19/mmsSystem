@@ -1,15 +1,26 @@
 import { useI18n } from '@solid-primitives/i18n';
 import { Title } from '@solidjs/meta';
 import { Card, Col, Row } from 'solid-bootstrap';
-import { Component, Show } from 'solid-js';
+import { Component, createResource, Show } from 'solid-js';
 import HomeCardComponent from '../components/HomeCardComponent';
 import PieChartComponent from '../components/PieChartComponent';
 import RegularTable from '../components/RegularTable';
 import { setCollapseName } from '../components/SidebarComponent';
 import SpinnerComponent from '../components/SpinnerComponent';
 import TableComponent from '../components/TableComponent';
-import { customers, marks } from '../utils/dataStore';
+import { getCustomData } from '../utils/api';
+import { customers } from '../utils/dataStore';
 import { calculatePercentage } from '../utils/functions';
+
+export const [
+    cardValues,
+    { refetch: refetCardValues, mutate: mutateCardValues },
+] = createResource(() => getCustomData('custom', 'count'));
+
+export const [
+    specMarks,
+    { refetch: refetSpecMarks, mutate: mutateSpecMarks },
+] = createResource(() => getCustomData('custom', 'specMarks'));
 
 const Home: Component = () => {
     setCollapseName({ collapse: 'marks', page: 'home' });
@@ -35,7 +46,7 @@ const Home: Component = () => {
 
     return (
         <>
-            <Show when={!marks()}>
+            <Show when={!specMarks()}>
                 <SpinnerComponent />
             </Show>
             <Title>{t('ipaz_home_homTitle')}</Title>
@@ -45,33 +56,33 @@ const Home: Component = () => {
 
             <Row class='mt-3'>
                 <HomeCardComponent
-                    number={marks()?.marksCount || 0}
+                    number={cardValues()?.mark}
                     percentage={100}
                     icon={'bookmark'}
                     header={'ipaz_card_allMarks'}
                 />
                 <HomeCardComponent
-                    number={marks()?.protectedMarks.length || 0}
+                    number={cardValues()?.protectedMark}
                     percentage={+calculatePercentage(
-                        marks()?.protectedMarks.length || 0,
-                        marks()?.marksCount,
+                        cardValues()?.protectedMark,
+                        cardValues()?.mark,
                     )}
                     icon={'database'}
                     header={'ipaz_card_allProtectedMarks'}
                     color='success'
                 />
                 <HomeCardComponent
-                    number={marks()?.unProtectedMarks.length || 0}
+                    number={specMarks()?.unProtectedMark.length}
                     percentage={+calculatePercentage(
-                        marks()?.unProtectedMarks.length || 0,
-                        marks()?.marksCount,
+                        specMarks()?.unProtectedMark.length,
+                        cardValues()?.mark,
                     )}
                     icon={'clipboard'}
                     header={'ipaz_chart_unProtectedMark'}
                     color='danger'
                 />
                 <HomeCardComponent
-                    number={customers()?.length || 0}
+                    number={customers()?.length}
                     percentage={100}
                     icon={'users'}
                     header={'ipaz_card_allCustomers'}
@@ -85,12 +96,12 @@ const Home: Component = () => {
                             <h5 class='card-title mb-0'>{t('ipaz_chart_PieTitle')}</h5>
                         </Card.Header>
                         <Card.Body class='d-flex'>
-                            <Show when={marks()}>
+                            <Show when={cardValues() && specMarks()}>
                                 <PieChartComponent
-                                    protectedMark={marks()!.protectedMarks.length}
-                                    awaitingMark={marks()!.pendingMarks.length}
-                                    unProtectedMark={marks()!.unProtectedMarks?.length}
-                                    protectionEndThisMonth={marks()!.protectionEndThisMonth?.length}
+                                    protectedMark={cardValues()?.protectedMark}
+                                    awaitingMark={specMarks()?.awaitingMark.length}
+                                    unProtectedMark={specMarks()?.unProtectedMark.length}
+                                    protectionEndThisMonth={specMarks()?.protectionEndThisMonth.length}
                                 />
                             </Show>
                         </Card.Body>
@@ -105,9 +116,9 @@ const Home: Component = () => {
                             <h5 class='card-title mb-0'>{t('ipaz_card_last10Mark')}</h5>
                         </Card.Header>
                         <Card.Body class='d-flex overflow-auto'>
-                            <Show when={marks()}>
+                            <Show when={specMarks()}>
                                 <RegularTable
-                                    data={marks()!.lastTenMarks}
+                                    data={specMarks()?.last10MarksArray}
                                     header={headers}
                                     keys={keys}
                                 />
@@ -118,7 +129,7 @@ const Home: Component = () => {
             </Row>
 
             <Show
-                when={marks()?.unProtectedMarks.length}
+                when={specMarks()?.unProtectedMark.length}
             >
                 <Row>
                     <Col lg={12} md={12} sm={12} class='d-flex order-1 order-xxl-3'>
@@ -127,12 +138,12 @@ const Home: Component = () => {
                                 <h5 class='card-title mb-0'>{t('ipaz_chart_unProtectedMark')}</h5>
                             </Card.Header>
                             <Card.Body dir='ltr'>
-                                <Show when={marks()!.unProtectedMarks}>
+                                <Show when={specMarks().unProtectedMark}>
                                     <TableComponent
                                         id='unProtectedMark'
                                         columnsHeader={headers}
                                         keys={keys}
-                                        data={() => marks()!.unProtectedMarks}
+                                        data={() => specMarks().unProtectedMark}
                                         options={{ edit: false, delete: false, id: 'mark_id' }}
                                     />
                                 </Show>
@@ -143,7 +154,7 @@ const Home: Component = () => {
             </Show>
 
             <Show
-                when={marks()?.protectionEndThisMonth.length}
+                when={specMarks()?.protectionEndThisMonth.length}
             >
                 <Row>
                     <Col lg={12} md={12} sm={12} class='d-flex order-1 order-xxl-3'>
@@ -156,7 +167,7 @@ const Home: Component = () => {
                                     id='protectionEndThisMonth'
                                     columnsHeader={headers}
                                     keys={keys}
-                                    data={() => marks()!.protectionEndThisMonth}
+                                    data={() => specMarks().protectionEndThisMonth}
                                     options={{ edit: false, delete: false, id: 'mark_id' }}
                                 />
                             </Card.Body>

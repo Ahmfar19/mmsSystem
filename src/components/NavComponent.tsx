@@ -1,16 +1,15 @@
-import { Window } from '@tauri-apps/api/window';
 import { Component, createSignal } from 'solid-js';
 
 const [collapse, setCollapse] = createSignal(false);
 
 const NavComponent: Component = () => {
-    async function fullScreen() {
-        // const focused = await Window.isFullscreen();
-        // if (focused) {
-        //     appWindow.setFullscreen(false);
-        // } else {
-        //     appWindow.setFullscreen(true);
-        // }
+    function fullScreen() {
+        const element = document.documentElement as HTMLElement;
+        if (document.fullscreenElement) {
+            document.exitFullscreen();
+        } else if (element.requestFullscreen) {
+            element.requestFullscreen();
+        }
     }
 
     return (

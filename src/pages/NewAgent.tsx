@@ -47,7 +47,7 @@ const NewAgent: Component = () => {
     async function handleSubmit() {
         if (!handleValidate()) return;
         setLoading(true);
-        const { error, id } = await postData(values(), 'agent');
+        const { error, id } = await postData(values(), 'table', 'agent');
 
         if (error) {
             showToast({ message: t('ipaz_alert_fail_addAgent'), type: 'error' });
@@ -68,7 +68,7 @@ const NewAgent: Component = () => {
         if (!handleValidate()) return;
 
         setLoading(true);
-        const { error } = await updateData(id, values(), 'agent', 'agent_id');
+        const { error } = await updateData('table', id, values(), 'agent');
 
         if (error) {
             showToast({ message: t('ipaz_alert_fail_editData'), type: 'error' });

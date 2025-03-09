@@ -1,11 +1,12 @@
 /* eslint-disable import/extensions */
+import { MetaProvider } from '@solidjs/meta';
 import { Router } from '@solidjs/router';
 import { render } from 'solid-js/web';
 import App from './App';
+import { AppContextProvider } from './AppContext';
 
 // Lib
 import 'bootstrap';
-// import * as bootstrap from 'bootstrap'
 
 // css
 import './index.css';
@@ -21,6 +22,10 @@ if (import.meta.env.DEV && !(root instanceof HTMLElement)) {
 
 render(() => (
     <Router>
-        <App />
+        <AppContextProvider>
+            <MetaProvider>
+                <App />
+            </MetaProvider>
+        </AppContextProvider>
     </Router>
 ), root as HTMLElement);

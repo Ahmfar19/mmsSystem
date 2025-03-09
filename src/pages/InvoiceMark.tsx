@@ -16,23 +16,12 @@ const InvoicMark: Component = () => {
     const [totalAmount, setTotalAmount] = createSignal<any>();
 
     const [payments] = createResource(
-        () => getData('payment', `mark_id=${markID}`),
+        () => getData('table', 'payment', `mark_id=${markID}`),
     );
 
     const [customer] = createResource(
-        () => getData('customer', `customer_id=${customerID}`),
+        () => getData('table', 'customer', `customer_id=${customerID}`),
     );
-
-    const [company] = createResource(
-        async () => {
-            const [result] = await getData('staff', `staff_id=1`);
-            return result;
-        },
-    );
-
-    createEffect(() => {
-        console.error('company()', company());
-    });
 
     createEffect(() => {
         if (payments()) {
@@ -59,7 +48,7 @@ const InvoicMark: Component = () => {
                 <Col md={12}>
                     <div class='card-body m-sm-2 m-md-4 mt-0'>
                         <div class='text-center'>
-                            <img src='/img/logo/logo_no_bg.png' width={200} height={150} alt='logo' />
+                            <img src='/img/logo/logo.png' width={200} height={150} alt='logo' />
                         </div>
                         <div class='mb-4'>
                             {t('ipaz_mark_managPage_DearCustomer')}
@@ -100,13 +89,13 @@ const InvoicMark: Component = () => {
                             <div class='col-md-6 text-md-end'>
                                 <div class='text-muted'>{t('ipaz_invoice_paymentTo')}</div>
                                 <strong>
-                                    {company()?.fname || ''}
+                                    شركة حسام البواب وشركاه
                                 </strong>
                                 <p>
-                                    <span>{company()?.lname || ''}</span>
+                                    <span>البواب للملكية الفكرية</span>
                                     <br />
                                     <a href='#'>
-                                        {company()?.email || ''}
+                                        info@albawab.com
                                     </a>
                                 </p>
                             </div>

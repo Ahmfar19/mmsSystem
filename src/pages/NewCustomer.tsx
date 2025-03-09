@@ -44,8 +44,10 @@ const NewCustomer: Component = () => {
     };
 
     async function handleSubmit() {
+        if (!handleValidate()) return;
+
         setLoading(true);
-        const { error, id } = await postData(values(), 'customer');
+        const { error, id } = await postData(values(), 'table', 'customer');
 
         if (error) {
             showToast({ message: t('ipaz_alert_fail_addCustomer'), type: 'error' });
@@ -66,7 +68,7 @@ const NewCustomer: Component = () => {
         if (!handleValidate()) return;
 
         setLoading(true);
-        const { error } = await updateData(id, values(), 'customer', 'customer_id');
+        const { error } = await updateData('table', id, values(), 'customer');
         if (error) {
             showToast({ message: t('ipaz_alert_fail_editData'), type: 'error' });
         } else {

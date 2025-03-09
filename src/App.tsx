@@ -1,32 +1,23 @@
-import { MetaProvider } from '@solidjs/meta';
-import { useNavigate, useRoutes } from '@solidjs/router';
-import { type Component, createEffect, Show } from 'solid-js';
-import { AppContextProvider } from './AppContext';
+import { useRoutes } from '@solidjs/router';
+import { type Component, Show, Suspense } from 'solid-js';
+import { useAppContext } from './AppContext';
 import MainComponent from './components/MainComponent';
+import SpinnerComponent from './components/SpinnerComponent';
 import { routes, routes2 } from './routes';
-import { isInlogged } from './utils/functions';
 
 const App: Component = () => {
     const Routes = useRoutes(routes);
     const Routes2 = useRoutes(routes2);
-    const navigate = useNavigate();
-
-    createEffect(() => {
-        if (!isInlogged()) {
-            navigate(`/login`);
-        }
-    });
+    const { store } = useAppContext();
 
     return (
-        <AppContextProvider>
-            <MetaProvider>
-                <MainComponent>
-                    <Show when={isInlogged()} fallback={<Routes2 />}>
-                        <Routes />
-                    </Show>
-                </MainComponent>
-            </MetaProvider>
-        </AppContextProvider>
+        <MainComponent>
+            <Suspense fallback={<SpinnerComponent />}>
+                <Show when={store.isInlogged} fallback={<Routes2 />}>
+                    <Routes />
+                </Show>
+            </Suspense>
+        </MainComponent>
     );
 };
 export default App;

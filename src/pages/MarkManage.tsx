@@ -8,7 +8,7 @@ import { createStore } from 'solid-js/store';
 import MarkManageComponent from '../components/MarkManageComponent';
 import { setCollapseName } from '../components/SidebarComponent';
 import SpinnerComponent from '../components/SpinnerComponent';
-import { getData, getJoinData } from '../utils/api';
+import { getCustomData, getData } from '../utils/api';
 import { agent, category, customers } from '../utils/dataStore';
 import showToast from '../utils/ToastMessage';
 
@@ -34,7 +34,7 @@ const ManageMark: Component = () => {
         if (paramsValue()) {
             setLoading(true);
             setCollapseName({ collapse: 'marks', page: 'manageMark' });
-            const res = await getData('mark', `mark_id=${params.id}`);
+            const res = await getData('table', 'mark', `mark_id=${params.id}`);
             setMarkManage(res[0]);
             setParamsValue(false);
             setLoading(false);
@@ -81,7 +81,7 @@ const ManageMark: Component = () => {
         }
 
         setLoading(true);
-        const result = await getData('mark', `${name}=${value}`);
+        const result = await getData('table', 'mark', `${name}=${value}`);
         if (result.length === 1) {
             setMarkManage(result[0]);
             setLoading(false);
@@ -118,9 +118,9 @@ const ManageMark: Component = () => {
         let result;
         if (name === 'mark_name') {
             const where = `name_en LIKE '%${value}%' OR name_ar LIKE '%${value}%';`;
-            result = await getData('mark', where);
+            result = await getData('table', 'mark', where);
         } else {
-            result = await getData('mark', `${name}=${value}`);
+            result = await getData('table', 'mark', `${name}=${value}`);
         }
         if (result.length === 1) {
             setMarkManage(result[0]);
@@ -155,25 +155,7 @@ const ManageMark: Component = () => {
             [name]: type === 'number' ? +value : value,
         }));
 
-        let result = [];
-        if (name === 'application_date') {
-            result = await getJoinData(
-                'mark',
-                'application',
-                'mark.mark_id',
-                'application.mark_id',
-                `strftime('%Y', application.application_date) = "${String(value)}"`,
-            );
-        } else {
-            result = await getJoinData(
-                'mark',
-                'application',
-                'mark.mark_id',
-                'application.mark_id',
-                `application.${name} = ${value}`,
-            );
-        }
-
+        const result = await getCustomData('custom', name, value);
         if (result.length === 1) {
             setMarkManage(result[0]);
             setLoading(false);

@@ -5,7 +5,7 @@ import { useAppContext } from '../AppContext';
 
 const SettingsComponent: Component = () => {
     const [open, setOpen] = createSignal(false);
-    const { store, updateStore } = useAppContext();
+    const { store, changeTheme, changeSideBarLayout, changeSideBarPosition } = useAppContext();
     const [, { locale }] = useI18n();
 
     onMount(() => {
@@ -52,10 +52,8 @@ const SettingsComponent: Component = () => {
                                             type='radio'
                                             name='default'
                                             value='default'
-                                            checked={store.color === 'default'}
-                                            onClick={() => {
-                                                updateStore('color', 'default');
-                                            }}
+                                            checked={store.theme === 'default'}
+                                            onClick={() => changeTheme('default')}
                                         />
                                         <div class='settings-scheme'>
                                             <div class='settings-scheme-theme settings-scheme-theme-default' />
@@ -71,10 +69,8 @@ const SettingsComponent: Component = () => {
                                             type='radio'
                                             name='colored'
                                             value='colored'
-                                            checked={store.color === 'colored'}
-                                            onClick={() => {
-                                                updateStore('color', 'colored');
-                                            }}
+                                            checked={store.theme === 'colored'}
+                                            onClick={() => changeTheme('colored')}
                                         />
                                         <div class='settings-scheme'>
                                             <div class='settings-scheme-theme settings-scheme-theme-colored' />
@@ -93,9 +89,7 @@ const SettingsComponent: Component = () => {
                                             name='dark'
                                             value='dark'
                                             checked={store.theme === 'dark'}
-                                            onClick={() => {
-                                                updateStore('theme', 'dark');
-                                            }}
+                                            onClick={() => changeTheme('dark')}
                                         />
                                         <div class='settings-scheme'>
                                             <div class='settings-scheme-theme settings-scheme-theme-dark' />
@@ -112,9 +106,7 @@ const SettingsComponent: Component = () => {
                                             name='light'
                                             value='light'
                                             checked={store.theme === 'light'}
-                                            onClick={() => {
-                                                updateStore('theme', 'light');
-                                            }}
+                                            onClick={() => changeTheme('light')}
                                         />
                                         <div class='settings-scheme'>
                                             <div class='settings-scheme-theme settings-scheme-theme-light' />
@@ -185,9 +177,7 @@ const SettingsComponent: Component = () => {
                                     />
                                     <div
                                         class='settings-button mx-1'
-                                        onClick={() => {
-                                            updateStore('sidebarLayout', 'default');
-                                        }}
+                                        onClick={() => changeSideBarLayout('default')}
                                     >
                                         Default
                                     </div>
@@ -203,9 +193,7 @@ const SettingsComponent: Component = () => {
                                     />
                                     <div
                                         class='settings-button mx-1'
-                                        onClick={() => {
-                                            updateStore('sidebarLayout', 'compact');
-                                        }}
+                                        onClick={() => changeSideBarLayout('compact')}
                                     >
                                         Compact
                                     </div>
@@ -229,9 +217,7 @@ const SettingsComponent: Component = () => {
                                     />
                                     <div
                                         class='settings-button mx-1'
-                                        onClick={() => {
-                                            updateStore('sidebarPosition', 'left');
-                                        }}
+                                        onClick={() => changeSideBarPosition('left')}
                                     >
                                         Left
                                     </div>
@@ -247,9 +233,7 @@ const SettingsComponent: Component = () => {
                                     />
                                     <div
                                         class='settings-button mx-1'
-                                        onClick={() => {
-                                            updateStore('sidebarPosition', 'right');
-                                        }}
+                                        onClick={() => changeSideBarPosition('right')}
                                     >
                                         Right
                                     </div>

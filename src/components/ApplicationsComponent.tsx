@@ -19,7 +19,7 @@ const ApplicationComponent: Component<{
 
     const [applications, { mutate: mutateApp }] = createResource(
         () => props.mark().mark_id,
-        (mark_id) => getData('application', `mark_id=${mark_id}`),
+        (mark_id) => getData('table', 'application', `mark_id=${mark_id}`),
     );
 
     const [validated, setValidated] = createSignal(false);
@@ -54,7 +54,7 @@ const ApplicationComponent: Component<{
 
         const values = appValues();
 
-        const { error, id } = await postData(appValues(), 'application');
+        const { error, id } = await postData(appValues(), 'table', 'application');
 
         if (error) {
             showToast({ message: t('ipaz_alert_fail_addApp'), type: 'error' });
@@ -93,7 +93,7 @@ const ApplicationComponent: Component<{
     }
 
     async function updateMark() {
-        const { error } = await updateData(markUpdate().mark_id, markUpdate(), 'mark', 'mark_id');
+        const { error } = await updateData('table', markUpdate().mark_id, markUpdate(), 'mark');
         if (error) {
             showToast({ message: t('ipaz_alert_fail_editData'), type: 'error' });
         } else {

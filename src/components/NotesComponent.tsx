@@ -22,7 +22,7 @@ const PaymentsComponent: Component<{
 
     const [notes, { mutate: mutateNote }] = createResource(
         () => props.mark().mark_id,
-        (mark_id) => getData('note', `mark_id=${mark_id}`),
+        (mark_id) => getData('table', 'note', `mark_id=${mark_id}`),
     );
 
     const [validated, setValidated] = createSignal(false);
@@ -72,7 +72,7 @@ const PaymentsComponent: Component<{
     }
 
     async function handldeDeleteNote(id: string | number) {
-        const { error } = await deleteData(+id, 'note', 'note_id');
+        const { error } = await deleteData('table', +id, 'note');
         if (error) {
             showToast({ message: t('ipaz_alert_fail_deleteData'), type: 'error' });
         }
@@ -89,13 +89,13 @@ const PaymentsComponent: Component<{
 
         if (!handleValidate(noteFormElement)) return;
         if (edit) {
-            await updateData(noteValue().note_id, noteValue(), 'note', 'note_id');
+            await updateData('table', noteValue().note_id, noteValue(), 'note');
             updateNote(note_id, noteValue());
 
             showToast({ message: t('ipaz_alert_success_editData'), type: 'default' });
         } else {
             const newPayment: NotesData = await createNote(
-                +props.mark().mark_id,
+                props.mark().mark_id,
                 note_title,
                 getDate(),
                 note_text,

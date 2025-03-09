@@ -1,3 +1,5 @@
+import { SetStoreFunction } from 'solid-js/store';
+
 export interface PaymentsData {
     staff_id?: number;
     mark_id: string;
@@ -10,7 +12,7 @@ export interface PaymentsData {
 
 export interface NotesData {
     staff_id?: number;
-    mark_id: number;
+    mark_id: string;
     note_title: string;
     note_date: string;
     note_text?: string;
@@ -61,4 +63,55 @@ interface ApiResponse {
     role?: string;
 }
 
-export { type AgentType, type ApiResponse, type CustomerType, type MarkTtype };
+interface StaffType {
+    staff_id?: number;
+    username: string;
+    fname: string;
+    lname: string;
+    phone: number;
+    email: string;
+    role: number;
+    password: string;
+    image: File | string;
+    userImage: string | undefined;
+}
+
+interface PasswordFormType {
+    password: string;
+    new_password: string;
+    verify_password: string;
+}
+
+type AppContextState = {
+    theme: string;
+    locale: string;
+    sidebarPosition: string;
+    sidebarLayout: string;
+    accessToken?: string;
+    staff: StaffType;
+    fingerprint: string;
+    isAdmin: boolean;
+    isInlogged: boolean;
+    onAuthenticate: boolean;
+};
+
+type AppContextValue = {
+    store: AppContextState;
+    changeTheme: (theme: string) => void;
+    changeSideBarPosition: (position: string) => void;
+    changeSideBarLayout: (layout: string) => void;
+    setState: (key: keyof AppContextState, value: any) => void;
+    setStore: SetStoreFunction<AppContextState>;
+    clearAllCookies: () => void;
+};
+
+export {
+    type AgentType,
+    type ApiResponse,
+    type AppContextState,
+    type AppContextValue,
+    type CustomerType,
+    type MarkTtype,
+    type PasswordFormType,
+    type StaffType,
+};

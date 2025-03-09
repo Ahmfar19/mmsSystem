@@ -1,17 +1,16 @@
 import { useI18n } from '@solid-primitives/i18n';
 import { Title } from '@solidjs/meta';
-import { BaseDirectory, writeBinaryFile } from '@tauri-apps/api/fs';
 import Choices from 'choices.js';
 import { Card, Col } from 'solid-bootstrap';
 import { Component, createEffect, createSignal, onCleanup, onMount, untrack } from 'solid-js';
-import { useAppContext } from '../AppContext';
 import MarkForm from '../components/MarkForm';
 import { setCollapseName } from '../components/SidebarComponent';
-import { postData, updateData } from '../utils/api';
-import { agent, customers, mutateMarks } from '../utils/dataStore';
+import { postData } from '../utils/api';
+import { agent, customers } from '../utils/dataStore';
 import { createNote, getDate, isCurrentMonthAndYear, isDateInFeature, isDateInPast } from '../utils/functions';
 import showToast from '../utils/ToastMessage';
 import { MarkTtype } from '../utils/types';
+import { mutateCardValues, mutateSpecMarks } from './Home';
 
 const NewMark: Component = () => {
     setCollapseName({ collapse: 'marks', page: 'newMark' });
@@ -19,81 +18,68 @@ const NewMark: Component = () => {
     let agentIDChoise: Choices;
 
     const [t] = useI18n();
-    const { store } = useAppContext();
 
     const [markValues, setMarkValues] = createSignal<MarkTtype | { [key: string]: any }>({});
     const [applicatiponValues, setApplicationValues] = createSignal<any>({});
 
     const handleSaveMark = async () => {
-        setMarkValues(signalValues => ({ ...signalValues, staff_id: store.staffID }));
+        setMarkValues(signalValues => ({ ...signalValues, staff_id: 1 }));
 
         // Extract the files (logo) from the signal
         const { logo, ...newSignal } = markValues();
-
         setMarkValues(newSignal);
 
-        const { error, id } = await postData(markValues(), 'mark');
+        const { error, id } = await postData(markValues(), 'mark', 'mark', logo);
 
         if (error) {
             showToast({ message: t('ipaz_alert_fail_addMark'), type: 'error' });
         } else {
             showToast({ message: t('ipaz_alert_success_addMark'), type: 'success' });
-            createNote(id!, t('ipaz_note_markRegisterd'), getDate(), t('ipaz_note_markRegisterdDone'));
-
-            // Move the logos if exsist
-            if (logo) {
-                const logos: string[] = [];
-                logo.forEach((file: File) => {
-                    const reader = new FileReader();
-                    const filename = `${id}_${file.name}`;
-                    logos.push(filename);
-                    reader.onload = async (event: any) => {
-                        const fileData = new Uint8Array(event?.target?.result);
-                        const path = `images/${filename}`;
-                        await writeBinaryFile(path, fileData, { dir: BaseDirectory.AppData });
-                    };
-                    reader.readAsArrayBuffer(file);
-                });
-                updateData(id!, { logo: logos.join(',') }, 'mark', 'mark_id');
-            }
+            createNote(String(id), t('ipaz_note_markRegisterd'), getDate(), t('ipaz_note_markRegisterdDone'));
 
             // Make a new application
             handleSaveApplication(String(id));
 
-            mutateMarks((prevValues: any) => {
+            // Update the card values
+            if (isDateInFeature(markValues().protection_end)) {
+                mutateCardValues((prevValues) => ({
+                    ...prevValues,
+                    mark: +prevValues.mark + 1,
+                    protectedMark: +prevValues.protectedMark + 1,
+                }));
+            } else {
+                mutateCardValues((prevValues) => ({
+                    ...prevValues,
+                    mark: +prevValues.mark + 1,
+                }));
+            }
+
+            mutateSpecMarks((prevValues) => {
                 let updatedMarksArray;
-                const updatedUnProtectedMark: MarkTtype[] = [];
-                const updatedEndThisMonth: MarkTtype[] = [];
-                const updatedprotectedMarks: MarkTtype[] = [];
+                const updatedUnProtectedMark: any[] = [];
+                const updatedEndThisMonth: any[] = [];
 
                 const merkValues = untrack(() => markValues());
                 merkValues.mark_id = id;
 
-                if (prevValues.lastTenMarks.length >= 10) {
-                    updatedMarksArray = [...prevValues.lastTenMarks.slice(0, -1)];
+                if (prevValues.last10MarksArray.length >= 10) {
+                    updatedMarksArray = [...prevValues.last10MarksArray.slice(0, -1)];
                 } else {
-                    updatedMarksArray = [...prevValues.lastTenMarks];
+                    updatedMarksArray = [...prevValues.last10MarksArray];
                 }
-
                 updatedMarksArray.unshift(merkValues);
 
                 if (isDateInPast(merkValues.protection_end)) {
-                    updatedUnProtectedMark.push(merkValues as MarkTtype);
-                } else if (isDateInFeature(merkValues.protection_end)) {
-                    updatedprotectedMarks.push(merkValues as MarkTtype);
-                }
-
-                if (isCurrentMonthAndYear(merkValues.protection_end)) {
-                    updatedEndThisMonth.push(merkValues as MarkTtype);
+                    updatedUnProtectedMark.push(merkValues);
+                } else if (isCurrentMonthAndYear(merkValues.protection_end)) {
+                    updatedEndThisMonth.push(merkValues);
                 }
 
                 return {
                     ...prevValues,
-                    marksCount: prevValues.marksCount + 1,
-                    lastTenMarks: updatedMarksArray,
-                    unProtectedMarks: [...prevValues.unProtectedMarks, ...updatedUnProtectedMark],
+                    last10MarksArray: updatedMarksArray,
+                    unProtectedMark: [...prevValues.unProtectedMark, ...updatedUnProtectedMark],
                     protectionEndThisMonth: [...prevValues.protectionEndThisMonth, ...updatedEndThisMonth],
-                    protectedMarks: [...prevValues.protectedMarks, ...updatedprotectedMarks],
                 };
             });
 
@@ -107,11 +93,11 @@ const NewMark: Component = () => {
             setApplicationValues(signalValues => ({
                 ...signalValues,
                 mark_id,
-                staff_id: store.staffID,
+                staff_id: 1,
                 type_id: 1,
             }));
         }
-        const { error } = await postData(applicatiponValues(), 'application');
+        const { error } = await postData(applicatiponValues(), 'table', 'application');
 
         if (error) {
             showToast({ message: t('ipaz_alert_fail_addApp'), type: 'error' });
@@ -120,7 +106,7 @@ const NewMark: Component = () => {
 
             // Create a new note for the application
             await createNote(
-                +mark_id,
+                mark_id,
                 t('ipaz_note_marApplicationkRegisterd'),
                 applicatiponValues().application_date,
                 t('ipaz_note_marApplicationkRegisterdDone') + ` (${applicatiponValues()?.custom_app_id})`,

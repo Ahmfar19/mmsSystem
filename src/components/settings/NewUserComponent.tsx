@@ -1,33 +1,30 @@
 import { useI18n } from '@solid-primitives/i18n';
 import { Button, Card, Col, Form, Row, Spinner } from 'solid-bootstrap';
-import { Accessor, Component, createEffect, createSignal, For, Setter, Show } from 'solid-js';
+import { Component, createEffect, createSignal, For, onCleanup, Setter, Show, untrack } from 'solid-js';
 import { postData, updateData } from '../../utils/api';
-import { roles } from '../../utils/dataStore';
-import { hashPassword } from '../../utils/functions';
+import { getRoles } from '../../utils/functions';
+import { refetchStaffs, staffs } from '../../utils/staff';
 import showToast from '../../utils/ToastMessage';
-import { refetchUser, users } from './UsersTabComponent';
+import { StaffType } from '../../utils/types';
 
-const NewUserTabComponent: Component<{
-    setKey: Setter<string>;
-    edit: Accessor<number | undefined>;
-    setEdit: Setter<number | undefined>;
+const NewUserComponent: Component<{
+    setEditMode?: Setter<number | undefined>;
+    id?: number;
 }> = (props) => {
-    const [t, { locale }] = useI18n();
     let formElement: HTMLFormElement;
+    const [t] = useI18n();
 
     const [loading, setLoading] = createSignal(false);
     const [validated, setValidated] = createSignal(false);
-    const [values, setValues] = createSignal<{ [key: string]: any }>({});
+    const [values, setValues] = createSignal<StaffType>({} as StaffType);
 
     createEffect(() => {
-        if (props.edit()) {
-            props.setKey('newUser');
-            const found = users().find((element: any) => +element.staff_id === props.edit()!);
-            delete found.password;
-            setValues(found);
-            if (!found) {
-                props.setKey('user');
-            }
+        const staff = staffs()?.find((s: StaffType) => +s.staff_id! === +(props.id || 0));
+        if (staff) {
+            delete (staff as any).password;
+            setValues(staff);
+        } else {
+            untrack(() => props.setEditMode?.());
         }
     });
 
@@ -45,59 +42,58 @@ const NewUserTabComponent: Component<{
     const handleSave = async () => {
         if (!handleValidate() || !values()) return;
         setLoading(true);
-
-        if (values()!.password) {
-            const passHash = await hashPassword(values()!.password);
-            setValues(signalValues => ({ ...signalValues, password: passHash }));
-        }
-
-        const { error } = await postData(values(), 'staff');
+        const { error } = await postData(values(), 'table', 'staff');
         if (error) {
             showToast({ message: t('ipaz_alert_fail_addUser'), type: 'error' });
         } else {
-            refetchUser();
             showToast({ message: t('ipaz_alert_success_addUser'), type: 'success' });
+            refetchStaffs();
         }
+
         setLoading(false);
         setValidated(false);
-        setValues({});
+        setValues({} as StaffType);
     };
 
-    const hanleEdit = async (id: number) => {
+    const hanleEdit = async () => {
         if (!handleValidate()) return;
 
-        setLoading(true);
-
-        if (values()!.password) {
-            const passHash = await hashPassword(values()!.password);
-            setValues(signalValues => ({ ...signalValues, password: passHash }));
+        if (!props.id) {
+            showToast({ message: t('ec_error_message'), type: 'error' });
+            return;
         }
 
-        const { error } = await updateData(id, values(), 'staff', 'staff_id');
+        setLoading(true);
+        const { error } = await updateData('table', values().staff_id!, values(), 'staff');
 
         if (error) {
-            showToast({ message: t('ipaz_alert_fail_editData'), type: 'error' });
+            showToast({ message: t('ipaz_alert_fail_updateUser'), type: 'error' });
         } else {
             setValidated(false);
-            setValues({});
-            refetchUser();
-            props.setEdit();
-            props.setKey('users');
-            showToast({ message: t('ipaz_alert_success_editData'), type: 'success' });
+            setValues({} as StaffType);
+            await refetchStaffs();
+            showToast({ message: t('ipaz_alert_success_updateUser'), type: 'success' });
+            untrack(() => props.setEditMode?.());
         }
         setLoading(false);
     };
 
     const handleCancelEdit = () => {
-        setValues({});
-        props.setEdit();
-        props.setKey('users');
+        setValues({} as StaffType);
+        untrack(() => props.setEditMode?.());
     };
+
+    onCleanup(() => {
+        setValues({} as StaffType);
+        untrack(() => props.setEditMode?.());
+    });
 
     return (
         <Card>
             <Card.Header class='pb-0'>
-                <h5 class='card-title'>{t('ipaz_settings_newUser')}</h5>
+                <Card.Title>
+                    {t('ec_settings_account_createNew')}
+                </Card.Title>
             </Card.Header>
             <Form
                 class='card-body'
@@ -106,15 +102,15 @@ const NewUserTabComponent: Component<{
                     formElement = r;
                 }}
             >
-                <Row class='mb-3'>
+                <Row class='mb-2'>
                     <Form.Group as={Col} md='6'>
                         <Form.Label>{t('ipaz_settings_username')}</Form.Label>
                         <Form.Control
                             size='lg'
                             name='username'
                             type='text'
-                            onInput={handleChange}
-                            value={values().username ?? ''}
+                            onChange={handleChange}
+                            value={values()?.username ?? ''}
                             placeholder={t('ipaz_settings_username')}
                             required
                         />
@@ -129,10 +125,11 @@ const NewUserTabComponent: Component<{
                             size='lg'
                             name='password'
                             type='password'
-                            onInput={handleChange}
-                            value={values().password ?? ''}
+                            onChange={handleChange}
+                            value={values()?.password ?? ''}
                             placeholder={t('ipaz_settings_password')}
-                            required
+                            required={!props.id}
+                            disabled={Boolean(props.id)}
                         />
                         <Form.Control.Feedback type='invalid'>
                             {t('ipaz_validation_required')}
@@ -140,15 +137,15 @@ const NewUserTabComponent: Component<{
                     </Form.Group>
                 </Row>
 
-                <Row class='mb-3'>
+                <Row class='mb-2'>
                     <Form.Group as={Col} md='6'>
                         <Form.Label>{t('ipaz_sidebar_customoerFirstName')}</Form.Label>
                         <Form.Control
                             size='lg'
                             name='fname'
                             type='text'
-                            onInput={handleChange}
-                            value={values().fname ?? ''}
+                            onChange={handleChange}
+                            value={values()?.fname ?? ''}
                             placeholder={t('ipaz_sidebar_customoerFirstName')}
                             required
                         />
@@ -163,8 +160,8 @@ const NewUserTabComponent: Component<{
                             size='lg'
                             name='lname'
                             type='text'
-                            onInput={handleChange}
-                            value={values().lname ?? ''}
+                            onChange={handleChange}
+                            value={values()?.lname ?? ''}
                             placeholder={t('ipaz_sidebar_customoerLasrName')}
                             required
                         />
@@ -174,16 +171,16 @@ const NewUserTabComponent: Component<{
                     </Form.Group>
                 </Row>
 
-                <Row class='mb-3'>
+                <Row class='mb-2'>
                     <Form.Group as={Col} md='6'>
-                        <Form.Label>{t('ipaz_settings_email')}</Form.Label>
+                        <Form.Label>{t('ipaz_login_email')}</Form.Label>
                         <Form.Control
                             size='lg'
                             name='email'
                             type='text'
-                            onInput={handleChange}
-                            value={values().email ?? ''}
-                            placeholder={t('ipaz_settings_email')}
+                            onChange={handleChange}
+                            value={values()?.email ?? ''}
+                            placeholder={t('ipaz_login_email')}
                             required
                         />
                         <Form.Control.Feedback type='invalid'>
@@ -195,9 +192,9 @@ const NewUserTabComponent: Component<{
                         <Form.Control
                             size='lg'
                             name='phone'
-                            type='phone'
-                            onInput={handleChange}
-                            value={values().phone ?? ''}
+                            type='number'
+                            onChange={handleChange}
+                            value={values()?.phone ?? ''}
                             placeholder={t('ipaz_settings_phone')}
                             required
                         />
@@ -207,21 +204,21 @@ const NewUserTabComponent: Component<{
                     </Form.Group>
                 </Row>
 
-                <Row class='mb-6'>
-                    <Form.Group class='mb-3' md='6' as={Col}>
+                <Row class='mb-4'>
+                    <Form.Group>
                         <Form.Label>{t('ipaz_settings_role')}</Form.Label>
                         <Form.Select
                             size='lg'
                             name='role'
                             value={values().role ?? ''}
-                            onInput={handleChange}
+                            onChange={handleChange}
                             required
                         >
-                            <option disabled selected value=''>Choose...</option>
-                            <For each={roles[locale()!]}>
-                                {(role) => (
-                                    <option value={role.id}>
-                                        {role.role}
+                            <option selected disabled value=''>{t('ipaz_title_select')}</option>
+                            <For each={Object.entries(getRoles())}>
+                                {([value, text]: any) => (
+                                    <option value={value}>
+                                        {t(text)}
                                     </option>
                                 )}
                             </For>
@@ -232,10 +229,10 @@ const NewUserTabComponent: Component<{
                     </Form.Group>
                 </Row>
 
-                <Row class='mt-4'>
+                <Row>
                     <Col>
                         <Show
-                            when={props.edit()}
+                            when={Boolean(props.id)}
                             fallback={
                                 <Button
                                     variant='primary'
@@ -256,10 +253,10 @@ const NewUserTabComponent: Component<{
                             }
                         >
                             <Button
-                                onClick={() => hanleEdit(props.edit()!)}
+                                onClick={() => hanleEdit()}
                                 variant='success'
                             >
-                                {t('ipaz_buttonTooltip_edit')}
+                                {t('ipaz_title_save')}
                                 <Show when={loading()}>
                                     <Spinner
                                         as='span'
@@ -297,4 +294,4 @@ const NewUserTabComponent: Component<{
     );
 };
 
-export default NewUserTabComponent;
+export default NewUserComponent;

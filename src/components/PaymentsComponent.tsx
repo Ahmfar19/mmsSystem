@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { useI18n } from '@solid-primitives/i18n';
-import { WebviewWindow } from '@tauri-apps/api/window';
+import { A } from '@solidjs/router';
 import feather from 'feather-icons';
 import { Button, Card, Col, Form, OverlayTrigger, Row, Table, Tooltip } from 'solid-bootstrap';
 import { Accessor, Component, createEffect, createResource, createSignal, For, Show } from 'solid-js';
@@ -27,7 +27,7 @@ const PaymentsComponent: Component<{
 
     const [payments, { mutate: mutatePayment }] = createResource(
         () => props.mark().mark_id,
-        (mark_id) => getData('payment', `mark_id=${mark_id}`),
+        (mark_id) => getData('table', 'payment', `mark_id=${mark_id}`),
     );
 
     const handleValidate = (form: HTMLFormElement) => {
@@ -71,7 +71,7 @@ const PaymentsComponent: Component<{
 
         if (!handleValidate(paymentFormElement)) return;
         if (edit) {
-            await updateData(paymentValue().payment_id, paymentValue(), 'payment', 'payment_id');
+            await updateData('table', paymentValue().payment_id, paymentValue(), 'payment');
             updatePayment(payment_id, paymentValue());
             showToast({ message: t('ipaz_alert_success_editData'), type: 'default' });
         } else {
@@ -98,7 +98,7 @@ const PaymentsComponent: Component<{
     }
 
     async function handldeDeletePayment(id: string | number) {
-        const { error } = await deleteData(+id, 'payment', 'payment_id');
+        const { error } = await deleteData('table', +id, 'payment');
         if (error) {
             showToast({ message: t('ipaz_alert_fail_deleteData'), type: 'error' });
         }
@@ -121,21 +121,6 @@ const PaymentsComponent: Component<{
     function updatePayments(newPayment: PaymentsData) {
         mutatePayment((prevNotes) => [...prevNotes, newPayment]);
     }
-
-    const printPayment = () => {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const webview = new WebviewWindow('theUniqueLabel', {
-            url: `/invoiveMark/${props.mark()?.mark_id}-${props.mark().customer_id}`,
-            title: t('ipaz_mark_managPage_printInvoice'),
-            height: 800,
-        });
-        // webview.once('tauri://created', () => {
-        //     console.error('ja');
-        // });
-        // webview.once('tauri://error', (e) => {
-        //     console.error('e', e);
-        // });
-    };
 
     return (
         <>
@@ -219,12 +204,12 @@ const PaymentsComponent: Component<{
                                 </td>
                                 <Show when={store.isAdmin}>
                                     <td colSpan={2}>
-                                        <span
-                                            class='editIcon'
-                                            onClick={printPayment}
+                                        <A
+                                            href={`/invoiveMark/${props.mark()?.mark_id}-${props.mark().customer_id}`}
+                                            target='_blank'
                                         >
                                             {t('ipaz_mark_managPage_printInvoice')}
-                                        </span>
+                                        </A>
                                     </td>
                                 </Show>
                             </tr>
