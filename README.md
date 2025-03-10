@@ -6,13 +6,12 @@ This template should help get you started developing with Tauri, Solid and Types
 
 - [VS Code](https://code.visualstudio.com/) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)
 
-
 Template created! To get started run:
-  npm install
-  npm run tauri android init 
+npm install
+npm run tauri android init
 
 For Desktop development, run:
-  npm run tauri dev
+npm run tauri dev
 
 For Android development, run:
-  npm run tauri android dev
+npm run tauri android dev
